@@ -8,7 +8,7 @@
 
 ```bash
 npm start
-# (or: node server.js)
+# (or: node local-server.js)
 ```
 Open **`http://localhost:3000`** in your browser.
 

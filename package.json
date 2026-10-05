@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Instant single-slide portfolio link collector with zero-database file & local storage",
   "scripts": {
-    "start": "node server.js"
+    "start": "node local-server.js"
   },
   "keywords": [
     "portfolio",

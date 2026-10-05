@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = process.env.VERCEL ? '/tmp' : __dirname;
+const DATA_DIR = __dirname;
 const JSON_FILE = path.join(DATA_DIR, 'portfolios.json');
 const CSV_FILE = path.join(DATA_DIR, 'portfolios.csv');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dsaandcode';
@@ -12,21 +12,11 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dsaandcode';
 function initStorage() {
   try {
     if (!fs.existsSync(JSON_FILE)) {
-      const seedJson = path.join(__dirname, 'portfolios.json');
-      if (fs.existsSync(seedJson) && seedJson !== JSON_FILE) {
-        fs.copyFileSync(seedJson, JSON_FILE);
-      } else {
-        fs.writeFileSync(JSON_FILE, JSON.stringify([], null, 2), 'utf8');
-      }
+      fs.writeFileSync(JSON_FILE, JSON.stringify([], null, 2), 'utf8');
     }
     if (!fs.existsSync(CSV_FILE)) {
-      const seedCsv = path.join(__dirname, 'portfolios.csv');
-      if (fs.existsSync(seedCsv) && seedCsv !== CSV_FILE) {
-        fs.copyFileSync(seedCsv, CSV_FILE);
-      } else {
-        const csvHeader = 'ID,Name,USN,Portfolio_URL,Platform,Submitted_At\n';
-        fs.writeFileSync(CSV_FILE, csvHeader, 'utf8');
-      }
+      const csvHeader = 'ID,Name,USN,Portfolio_URL,Platform,Submitted_At\n';
+      fs.writeFileSync(CSV_FILE, csvHeader, 'utf8');
     }
   } catch (err) {
     console.warn('Storage init warning:', err.message);
@@ -38,11 +28,6 @@ function readPortfolios() {
   try {
     if (fs.existsSync(JSON_FILE)) {
       const content = fs.readFileSync(JSON_FILE, 'utf8');
-      return JSON.parse(content || '[]');
-    }
-    const seedJson = path.join(__dirname, 'portfolios.json');
-    if (fs.existsSync(seedJson)) {
-      const content = fs.readFileSync(seedJson, 'utf8');
       return JSON.parse(content || '[]');
     }
     return [];
@@ -170,11 +155,6 @@ function handleRequest(req, res) {
     try {
       if (fs.existsSync(CSV_FILE)) {
         csvData = fs.readFileSync(CSV_FILE, 'utf8');
-      } else {
-        const seedCsv = path.join(__dirname, 'portfolios.csv');
-        if (fs.existsSync(seedCsv)) {
-          csvData = fs.readFileSync(seedCsv, 'utf8');
-        }
       }
     } catch (e) {
       console.error('Error reading CSV for export:', e.message);
@@ -278,7 +258,7 @@ function handleRequest(req, res) {
     return;
   }
 
-  // Serve static files (when running standalone locally)
+  // Serve static files
   let safePath = pathname === '/' ? '/index.html' : pathname;
   safePath = path.normalize(safePath).replace(/^(\.\.[\/\\])+/, '');
   const filePath = path.join(__dirname, safePath);
@@ -300,18 +280,15 @@ function handleRequest(req, res) {
 
 const server = http.createServer(handleRequest);
 
-// Start standalone HTTP server only when run directly (not when imported as a serverless function)
-if (require.main === module) {
-  server.listen(PORT, () => {
-    console.log(`=======================================================`);
-    console.log(`✨ Portfolio Collector Server running at:`);
-    console.log(`👉 http://localhost:${PORT}`);
-    console.log(`🔐 Admin: Double-click top-left logo (Password: ${ADMIN_PASSWORD})`);
-    console.log(`📁 Files automatically saved to:`);
-    console.log(`   - JSON: ${JSON_FILE}`);
-    console.log(`   - CSV:  ${CSV_FILE}`);
-    console.log(`=======================================================`);
-  });
-}
+server.listen(PORT, () => {
+  console.log(`=======================================================`);
+  console.log(`✨ Portfolio Collector Server running at:`);
+  console.log(`👉 http://localhost:${PORT}`);
+  console.log(`🔐 Admin: Double-click top-left logo (Password: ${ADMIN_PASSWORD})`);
+  console.log(`📁 Files automatically saved to:`);
+  console.log(`   - JSON: ${JSON_FILE}`);
+  console.log(`   - CSV:  ${CSV_FILE}`);
+  console.log(`=======================================================`);
+});
 
-module.exports = handleRequest;
+module.exports = server;
