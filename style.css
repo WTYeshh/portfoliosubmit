@@ -233,21 +233,20 @@ html, body {
 .public-status-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.04);
-  padding: 5px 12px;
-  border-radius: 9999px;
-  border: 1px solid var(--border-subtle);
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: rgba(16, 185, 129, 0.12);
+  border-radius: 50%;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .status-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background-color: var(--accent-emerald);
-  box-shadow: 0 0 6px var(--accent-emerald);
+  box-shadow: 0 0 8px var(--accent-emerald);
 }
 
 .status-indicator {
