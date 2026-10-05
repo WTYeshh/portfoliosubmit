@@ -3,28 +3,49 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = __dirname;
+const DATA_DIR = process.env.VERCEL ? '/tmp' : __dirname;
 const JSON_FILE = path.join(DATA_DIR, 'portfolios.json');
 const CSV_FILE = path.join(DATA_DIR, 'portfolios.csv');
-const ADMIN_PASSWORD = 'dsaandcode';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dsaandcode';
 
 // Initialize storage files with updated Name, USN, Portfolio_URL schema
 function initStorage() {
-  if (!fs.existsSync(JSON_FILE)) {
-    fs.writeFileSync(JSON_FILE, JSON.stringify([], null, 2), 'utf8');
-  }
-  if (!fs.existsSync(CSV_FILE)) {
-    const csvHeader = 'ID,Name,USN,Portfolio_URL,Platform,Submitted_At\n';
-    fs.writeFileSync(CSV_FILE, csvHeader, 'utf8');
+  try {
+    if (!fs.existsSync(JSON_FILE)) {
+      const seedJson = path.join(__dirname, 'portfolios.json');
+      if (fs.existsSync(seedJson) && seedJson !== JSON_FILE) {
+        fs.copyFileSync(seedJson, JSON_FILE);
+      } else {
+        fs.writeFileSync(JSON_FILE, JSON.stringify([], null, 2), 'utf8');
+      }
+    }
+    if (!fs.existsSync(CSV_FILE)) {
+      const seedCsv = path.join(__dirname, 'portfolios.csv');
+      if (fs.existsSync(seedCsv) && seedCsv !== CSV_FILE) {
+        fs.copyFileSync(seedCsv, CSV_FILE);
+      } else {
+        const csvHeader = 'ID,Name,USN,Portfolio_URL,Platform,Submitted_At\n';
+        fs.writeFileSync(CSV_FILE, csvHeader, 'utf8');
+      }
+    }
+  } catch (err) {
+    console.warn('Storage init warning:', err.message);
   }
 }
 initStorage();
 
 function readPortfolios() {
   try {
-    if (!fs.existsSync(JSON_FILE)) return [];
-    const content = fs.readFileSync(JSON_FILE, 'utf8');
-    return JSON.parse(content || '[]');
+    if (fs.existsSync(JSON_FILE)) {
+      const content = fs.readFileSync(JSON_FILE, 'utf8');
+      return JSON.parse(content || '[]');
+    }
+    const seedJson = path.join(__dirname, 'portfolios.json');
+    if (fs.existsSync(seedJson)) {
+      const content = fs.readFileSync(seedJson, 'utf8');
+      return JSON.parse(content || '[]');
+    }
+    return [];
   } catch (err) {
     console.error('Error reading JSON storage:', err.message);
     return [];
@@ -32,38 +53,22 @@ function readPortfolios() {
 }
 
 function savePortfolios(list) {
-  fs.writeFileSync(JSON_FILE, JSON.stringify(list, null, 2), 'utf8');
+  try {
+    fs.writeFileSync(JSON_FILE, JSON.stringify(list, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error saving JSON storage:', err.message);
+  }
 }
 
 function appendToCsv(item) {
-  const sanitize = (str) => {
-    if (!str) return '""';
-    const clean = String(str).replace(/"/g, '""').replace(/\r?\n|\r/g, ' ');
-    return `"${clean}"`;
-  };
+  try {
+    const sanitize = (str) => {
+      if (!str) return '""';
+      const clean = String(str).replace(/"/g, '""').replace(/\r?\n|\r/g, ' ');
+      return `"${clean}"`;
+    };
 
-  const line = [
-    sanitize(item.id),
-    sanitize(item.name || 'Anonymous'),
-    sanitize(item.usn || 'N/A'),
-    sanitize(item.url),
-    sanitize(item.platform || 'GitHub'),
-    sanitize(item.timestamp)
-  ].join(',') + '\n';
-
-  fs.appendFileSync(CSV_FILE, line, 'utf8');
-}
-
-function rewriteCsv(list) {
-  const sanitize = (str) => {
-    if (!str) return '""';
-    const clean = String(str).replace(/"/g, '""').replace(/\r?\n|\r/g, ' ');
-    return `"${clean}"`;
-  };
-
-  let content = 'ID,Name,USN,Portfolio_URL,Platform,Submitted_At\n';
-  for (const item of list) {
-    content += [
+    const line = [
       sanitize(item.id),
       sanitize(item.name || 'Anonymous'),
       sanitize(item.usn || 'N/A'),
@@ -71,8 +76,36 @@ function rewriteCsv(list) {
       sanitize(item.platform || 'GitHub'),
       sanitize(item.timestamp)
     ].join(',') + '\n';
+
+    fs.appendFileSync(CSV_FILE, line, 'utf8');
+  } catch (err) {
+    console.error('Error appending to CSV storage:', err.message);
   }
-  fs.writeFileSync(CSV_FILE, content, 'utf8');
+}
+
+function rewriteCsv(list) {
+  try {
+    const sanitize = (str) => {
+      if (!str) return '""';
+      const clean = String(str).replace(/"/g, '""').replace(/\r?\n|\r/g, ' ');
+      return `"${clean}"`;
+    };
+
+    let content = 'ID,Name,USN,Portfolio_URL,Platform,Submitted_At\n';
+    for (const item of list) {
+      content += [
+        sanitize(item.id),
+        sanitize(item.name || 'Anonymous'),
+        sanitize(item.usn || 'N/A'),
+        sanitize(item.url),
+        sanitize(item.platform || 'GitHub'),
+        sanitize(item.timestamp)
+      ].join(',') + '\n';
+    }
+    fs.writeFileSync(CSV_FILE, content, 'utf8');
+  } catch (err) {
+    console.error('Error rewriting CSV storage:', err.message);
+  }
 }
 
 const MIME_TYPES = {
@@ -87,7 +120,7 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
-const server = http.createServer((req, res) => {
+function handleRequest(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -133,15 +166,25 @@ const server = http.createServer((req, res) => {
 
   // API: Export CSV (Admin)
   if (req.method === 'GET' && pathname === '/api/export/csv') {
-    if (fs.existsSync(CSV_FILE)) {
-      const csvData = fs.readFileSync(CSV_FILE, 'utf8');
-      res.writeHead(200, {
-        'Content-Type': 'text/csv',
-        'Content-Disposition': 'attachment; filename="portfolios.csv"'
-      });
-      res.end(csvData);
-      return;
+    let csvData = 'ID,Name,USN,Portfolio_URL,Platform,Submitted_At\n';
+    try {
+      if (fs.existsSync(CSV_FILE)) {
+        csvData = fs.readFileSync(CSV_FILE, 'utf8');
+      } else {
+        const seedCsv = path.join(__dirname, 'portfolios.csv');
+        if (fs.existsSync(seedCsv)) {
+          csvData = fs.readFileSync(seedCsv, 'utf8');
+        }
+      }
+    } catch (e) {
+      console.error('Error reading CSV for export:', e.message);
     }
+    res.writeHead(200, {
+      'Content-Type': 'text/csv',
+      'Content-Disposition': 'attachment; filename="portfolios.csv"'
+    });
+    res.end(csvData);
+    return;
   }
 
   // API: Submit new student portfolio (Public)
@@ -235,7 +278,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Serve static files
+  // Serve static files (when running standalone locally)
   let safePath = pathname === '/' ? '/index.html' : pathname;
   safePath = path.normalize(safePath).replace(/^(\.\.[\/\\])+/, '');
   const filePath = path.join(__dirname, safePath);
@@ -253,15 +296,22 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': contentType });
     fs.createReadStream(filePath).pipe(res);
   });
-});
+}
 
-server.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(`✨ Portfolio Collector Server running at:`);
-  console.log(`👉 http://localhost:${PORT}`);
-  console.log(`🔐 Admin: Double-click top-left logo (Password: ${ADMIN_PASSWORD})`);
-  console.log(`📁 Files automatically saved to:`);
-  console.log(`   - JSON: ${JSON_FILE}`);
-  console.log(`   - CSV:  ${CSV_FILE}`);
-  console.log(`=======================================================`);
-});
+const server = http.createServer(handleRequest);
+
+// Start standalone HTTP server only when run directly (not when imported as a serverless function)
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`✨ Portfolio Collector Server running at:`);
+    console.log(`👉 http://localhost:${PORT}`);
+    console.log(`🔐 Admin: Double-click top-left logo (Password: ${ADMIN_PASSWORD})`);
+    console.log(`📁 Files automatically saved to:`);
+    console.log(`   - JSON: ${JSON_FILE}`);
+    console.log(`   - CSV:  ${CSV_FILE}`);
+    console.log(`=======================================================`);
+  });
+}
+
+module.exports = handleRequest;
