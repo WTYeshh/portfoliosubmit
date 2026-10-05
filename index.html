@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Drop — Student Submission Portal</title>
+  <meta name="description" content="Submit your portfolio and project link with Name and USN. Zero database needed.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- Main Single Slide App Container -->
+  <main class="slide-container">
+    <!-- Top Navigation / Status Header -->
+    <header class="app-header">
+      <!-- Admin Trigger Logo: Double-click to access admin -->
+      <div class="brand" id="adminLogoBtn" title="Double-click for Admin Access" style="cursor: pointer; user-select: none;">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
+            <path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path>
+            <circle cx="8" cy="12" r="2"></circle>
+          </svg>
+        </div>
+        <span class="brand-text">Portfolio<strong>Drop</strong></span>
+      </div>
+
+      <div class="header-actions">
+        <!-- Admin Access Status (Visible only to Admin or indicates secret access) -->
+        <div id="adminStatusContainer" class="admin-status-wrapper" style="display: none;">
+          <button id="viewVaultBtn" class="pill-btn admin-pill" title="View all collected submissions">
+            <span class="status-indicator"></span>
+            <span class="vault-label">Admin Vault</span>
+            <span id="headerCountBadge" class="count-pill">0</span>
+          </button>
+          <button id="lockAdminBtn" class="pill-btn-icon" title="Lock Admin Access">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div id="publicStatusBadge" class="public-status-badge">
+          <span class="status-dot"></span>
+          <span>Portal Active</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Central Hero Card -->
+    <section class="hero-card glass-panel">
+      <!-- Badge -->
+      <div class="badge-wrapper">
+        <span class="badge pulse-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          Student Portfolio & Project Submission
+        </span>
+      </div>
+
+      <!-- Hero Heading -->
+      <h1 class="hero-title">
+        Submit Your Portfolio Link
+      </h1>
+      <p class="hero-subtitle">
+        Enter your Name, USN, and Vercel portfolio link below to submit your project for review.
+      </p>
+
+      <!-- Input Form -->
+      <form id="portfolioForm" class="submission-form" autocomplete="off">
+        <div class="input-card">
+          <!-- Student Details Row: Name and USN -->
+          <div class="student-meta-row">
+            <div class="input-field-block">
+              <label for="studentName" class="field-label">Student Name (Letters Only, Capital)</label>
+              <div class="input-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <input 
+                  type="text" 
+                  id="studentName" 
+                  name="studentName" 
+                  class="uppercase-input"
+                  placeholder="ENTER FULL NAME" 
+                  pattern="[A-Za-z\s]{2,60}"
+                  title="Only characters/letters allowed"
+                  required
+                  autofocus
+                >
+              </div>
+            </div>
+
+            <div class="input-field-block">
+              <label for="studentUsn" class="field-label">USN (Capital)</label>
+              <div class="input-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  <line x1="6" y1="8" x2="10" y2="8"></line>
+                  <line x1="6" y1="12" x2="18" y2="12"></line>
+                  <line x1="6" y1="16" x2="14" y2="16"></line>
+                </svg>
+                <input 
+                  type="text" 
+                  id="studentUsn" 
+                  name="studentUsn" 
+                  class="uppercase-input"
+                  placeholder="e.g. 1MS21CS001" 
+                  pattern="[A-Za-z0-9]{4,20}"
+                  title="Alphanumeric USN"
+                  required
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Portfolio / Vercel URL Field -->
+          <div class="input-field-block link-block">
+            <label for="portfolioUrl" class="field-label">Portfolio / Vercel Link (https:// only)</label>
+            <div class="input-box link-input-box">
+              <div class="field-icon" id="platformIconContainer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L2 22h20L12 2z"/>
+                </svg>
+              </div>
+
+              <input 
+                type="text" 
+                id="portfolioUrl" 
+                name="portfolioUrl" 
+                placeholder="https://xyz.vercel.app" 
+                required
+              >
+
+              <button type="button" id="pasteClipboardBtn" class="field-action-btn" title="Paste from clipboard">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Paste</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Submit Action Row -->
+          <div class="action-footer">
+            <div class="storage-tag">
+              <span class="dot"></span>
+              <span id="storageModeLabel">Auto-saving to CSV & JSON</span>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-primary">
+              <span class="btn-text">Submit Portfolio</span>
+              <span class="btn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Quick Preset (Only Vercel) -->
+      <div class="supported-platforms">
+        <span class="label">Quick preset:</span>
+        <button type="button" class="platform-chip active-preset" id="vercelPresetBtn" data-prefix="https://.vercel.app">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 22h20L12 2z"/>
+          </svg>
+          Vercel URL (xyz.vercel.app)
+        </button>
+      </div>
+    </section>
+
+    <!-- Slide Footer -->
+    <footer class="slide-footer">
+      <span>Links securely saved to <code>portfolios.csv</code> & <code>portfolios.json</code></span>
+    </footer>
+  </main>
+
+  <!-- Admin Password Verification Modal -->
+  <div id="adminPassModal" class="admin-pass-modal" aria-hidden="true">
+    <div class="modal-backdrop" id="adminPassBackdrop"></div>
+    <div class="pass-dialog glass-panel" id="passDialog">
+      <div class="pass-dialog-header">
+        <div class="lock-icon-badge">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h2>Admin Authentication</h2>
+        <p>Double-click verified. Enter admin password to view submissions.</p>
+      </div>
+
+      <form id="adminPassForm">
+        <div class="pass-input-box">
+          <input 
+            type="password" 
+            id="adminPasswordInput" 
+            placeholder="Enter admin password..." 
+            autocomplete="current-password"
+            required
+          >
+          <button type="button" id="togglePassVisibility" class="icon-toggle-btn" title="Toggle visibility">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+
+        <div id="adminPassError" class="pass-error-msg" style="display: none;">
+          Incorrect password. Access denied.
+        </div>
+
+        <div class="pass-dialog-actions">
+          <button type="button" id="cancelAdminPassBtn" class="btn-secondary">Cancel</button>
+          <button type="submit" id="confirmAdminPassBtn" class="btn-primary">Unlock Access</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Submissions Vault Modal Drawer -->
+  <div id="vaultModal" class="vault-modal" aria-hidden="true">
+    <div class="vault-backdrop" id="vaultBackdrop"></div>
+    <div class="vault-panel">
+      <!-- Vault Header -->
+      <div class="vault-header">
+        <div class="vault-title-group">
+          <div class="admin-tag-badge">ADMIN</div>
+          <h2>Collected Submissions</h2>
+          <span id="vaultTotalBadge" class="vault-badge">0 links</span>
+        </div>
+        <button id="closeVaultBtn" class="close-btn" aria-label="Close vault">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Vault Quick Actions & Search -->
+      <div class="vault-toolbar">
+        <div class="vault-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="vaultSearchInput" placeholder="Search by student name, USN, or link...">
+        </div>
+
+        <div class="vault-action-buttons">
+          <button id="exportCsvBtn" class="btn-export" title="Download Excel/Sheets ready CSV">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Export CSV</span>
+          </button>
+
+          <button id="exportJsonBtn" class="btn-export" title="Download raw JSON file">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            <span>JSON</span>
+          </button>
+
+          <button id="copyAllBtn" class="btn-export" title="Copy all entries to clipboard">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>Copy All</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Vault Cards List -->
+      <div id="vaultList" class="vault-list">
+        <!-- Rendered dynamically with Name, USN, and Link -->
+      </div>
+      
+      <!-- Vault Footer -->
+      <div class="vault-footer">
+        <span class="vault-storage-hint">Stored on disk in <code>portfolios.csv</code> & <code>portfolios.json</code></span>
+        <button id="clearAllBtn" class="btn-text-danger">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Canvas for celebration confetti -->
+  <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+  <script src="app.js"></script>
+</body>
+</html>

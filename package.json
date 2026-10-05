@@ -1,0 +1,12 @@
+{
+  "name": "portfolio-collector",
+  "version": "1.0.0",
+  "description": "Instant single-slide portfolio link collector with zero-database file & local storage",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["portfolio", "collector", "links", "showcase"],
+  "author": "",
+  "license": "MIT"
+}
